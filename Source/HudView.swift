@@ -86,7 +86,7 @@ class HudView: UIView {
         informationLabel.textAlignment = .center
         informationLabel.numberOfLines = 0
         
-        loadingActivityIndicator = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
+        loadingActivityIndicator = UIActivityIndicatorView(style: .whiteLarge)
         loadingActivityIndicator.translatesAutoresizingMaskIntoConstraints = false
         
         hudMessageView.addSubview(iconImageView)
@@ -128,8 +128,8 @@ class HudView: UIView {
         let widthConstraint = NSLayoutConstraint(item: hudMessageView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: 144)
         let heightConstraint = NSLayoutConstraint(item: hudMessageView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: 144)
         
-        widthConstraint.priority = UILayoutPriorityRequired - 1
-        heightConstraint.priority = UILayoutPriorityRequired - 1
+        widthConstraint.priority = UILayoutPriority.required - 1
+        heightConstraint.priority = UILayoutPriority.required - 1
         
         [centerXConstraint, centerYConstraint, widthConstraint, heightConstraint].forEach {
             $0.isActive = true
@@ -179,7 +179,7 @@ class HudView: UIView {
             $0.isActive = true
         }
         
-        titleLabel.setContentCompressionResistancePriority(UILayoutPriorityRequired, for: .vertical)
+        titleLabel.setContentCompressionResistancePriority(UILayoutPriority.required, for: .vertical)
     }
     
     
@@ -194,7 +194,7 @@ class HudView: UIView {
             $0.isActive = true
         }
         
-        informationLabel.setContentCompressionResistancePriority(UILayoutPriorityRequired, for: .vertical)
+        informationLabel.setContentCompressionResistancePriority(UILayoutPriority.required, for: .vertical)
     }
 }
 
@@ -238,7 +238,7 @@ extension HudView {
         return view
     }
     
-    func deviceOrientationDidChange() {
+    @objc func deviceOrientationDidChange() {
         
         guard let superview = superview else {
             return
@@ -249,14 +249,14 @@ extension HudView {
         layoutIfNeeded()
     }
     
-    func removeHud(animated: Bool, onDone: ((Void) -> Void)?) {
+    func removeHud(animated: Bool, onDone: (() -> Void)?) {
         
         NotificationCenter.default.removeObserver(self)
         UIDevice.current.endGeneratingDeviceOrientationNotifications()
         timer.invalidate()
         
         if animated {
-            animateOutHud(completion: { [weak self] _ in
+            animateOutHud(completion: { [weak self] in
                 
                 self?.effectView?.removeFromSuperview()
                 self?.removeFromSuperview()
@@ -279,13 +279,13 @@ extension HudView {
     func showMessages(messages: [String]) {
         
         loadingMessagesHandler = LoadingMessagesHandler(messages: messages)
-        let showMessagesSelector = #selector(showMessages as (Void) -> Void)
+        let showMessagesSelector = #selector(showMessages as () -> Void)
         showMessages()
         timer.invalidate()
         timer = Timer.scheduledTimer(timeInterval: 2.5, target: self, selector: showMessagesSelector, userInfo: nil, repeats: true)
     }
     
-    func showMessages() {
+    @objc func showMessages() {
         
         let message = loadingMessagesHandler.firstMessage()
         if isActiveTimer {
@@ -298,13 +298,13 @@ extension HudView {
     func showFunnyMessages(languageType: LanguageType) {
         
         loadingMessagesHandler = LoadingMessagesHandler(languageType: languageType)
-        let showFunnyMessagesSelector = #selector(showFunnyMessages as (Void) -> Void)
+        let showFunnyMessagesSelector = #selector(showFunnyMessages as () -> Void)
         showFunnyMessages()
         timer.invalidate()
         timer = Timer.scheduledTimer(timeInterval: 2.5, target: self, selector: showFunnyMessagesSelector, userInfo: nil, repeats: true)
     }
     
-    func showFunnyMessages() {
+    @objc func showFunnyMessages() {
         
         let funnyMessage = loadingMessagesHandler.randomMessage()
         if isActiveTimer {
@@ -322,7 +322,7 @@ extension HudView {
         
         loadingActivityIndicator.startAnimating()
         
-        showViewsAnimated(views: [loadingActivityIndicator, informationLabel], completion: { _ in
+        showViewsAnimated(views: [loadingActivityIndicator, informationLabel], completion: {
             
             completion?()
             
@@ -332,7 +332,7 @@ extension HudView {
     
     func hideLoadingActivityIndicator(completion: (() -> Void)?) {
         
-        hideViewsAnimated(views: [loadingActivityIndicator, informationLabel], completion: { [weak self] _ in
+        hideViewsAnimated(views: [loadingActivityIndicator, informationLabel], completion: { [weak self] in
             
             self?.loadingActivityIndicator.stopAnimating()
             
@@ -355,7 +355,7 @@ extension HudView {
             loadingActivityIndicator.stopAnimating()
         }
         
-        showViewsAnimated(views: [titleLabel, informationLabel, iconImageView], completion: { _ in
+        showViewsAnimated(views: [titleLabel, informationLabel, iconImageView], completion: {
             
             completion?()
             
@@ -416,7 +416,7 @@ extension HudView {
             
             UIDevice.current.beginGeneratingDeviceOrientationNotifications()
             NotificationCenter.default.removeObserver(self)
-            NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange), name: UIDevice.orientationDidChangeNotification, object: nil)
             
             // HUD Size
             if APESuperHUD.appearance.hudSquareSize < frame.width && APESuperHUD.appearance.hudSquareSize < frame.height {
@@ -441,9 +441,7 @@ extension HudView {
         
         setupDefaultState()
         
-        animateInHud(completion: { _ in
-            
-        })
+        animateInHud(completion: { })
         
     }
 }
@@ -482,13 +480,13 @@ extension HudView {
         switch APESuperHUD.appearance.backgroundBlurEffect {
             
         case .dark:
-            blurEffect =  UIBlurEffect(style: UIBlurEffectStyle.dark)
+            blurEffect =  UIBlurEffect(style: UIBlurEffect.Style.dark)
             
         case .light:
-            blurEffect =  UIBlurEffect(style: UIBlurEffectStyle.light)
+            blurEffect =  UIBlurEffect(style: UIBlurEffect.Style.light)
             
         case .extraLight:
-            blurEffect =  UIBlurEffect(style: UIBlurEffectStyle.extraLight)
+            blurEffect =  UIBlurEffect(style: UIBlurEffect.Style.extraLight)
             
         case .none:
             
@@ -535,7 +533,7 @@ extension HudView {
         hudMessageView.transform = CGAffineTransform(scaleX: 0.1, y: 0.1)
         layoutIfNeeded()
         
-        UIView.animate(withDuration: APESuperHUD.appearance.animateInTime, delay: 0.0, usingSpringWithDamping: 0.6, initialSpringVelocity: 0, options: .curveEaseIn, animations: { [weak self] _ in
+        UIView.animate(withDuration: APESuperHUD.appearance.animateInTime, delay: 0.0, usingSpringWithDamping: 0.6, initialSpringVelocity: 0, options: .curveEaseIn, animations: { [weak self] in
             
             self?.hudMessageView.alpha = 1.0
             self?.alpha = 1.0
@@ -562,7 +560,7 @@ extension HudView {
         
         isAnimating = true
         
-        UIView.animate(withDuration: APESuperHUD.appearance.animateOutTime, delay: delay, options: UIViewAnimationOptions.curveEaseIn, animations: { [weak self] _ in
+        UIView.animate(withDuration: APESuperHUD.appearance.animateOutTime, delay: delay, options: UIView.AnimationOptions.curveEaseIn, animations: { [weak self] in
             
             self?.alpha = 0.0
             
@@ -588,7 +586,7 @@ extension HudView {
         
         isAnimating = true
         
-        UIView.animate(withDuration: APESuperHUD.appearance.animateOutTime, delay: delay, options: UIViewAnimationOptions.curveEaseIn, animations: {
+        UIView.animate(withDuration: APESuperHUD.appearance.animateOutTime, delay: delay, options: UIView.AnimationOptions.curveEaseIn, animations: {
             
             for view in views {
                 view.alpha = 1.0
